@@ -1,0 +1,23 @@
+{
+  "Serena": {
+    "name": "Serena",
+    "description": "温柔女声",
+    "reference": "Serena-reference.wav",
+    "text": "你好，我是 Serena。留一点时间，给阅读。愿这些文字，陪你度过一段安静的时光。",
+    "sha256": "915413eddfe08e690b1e69d656b18a7d5cb22f5451c1201ad9163b2c570412fe"
+  },
+  "Vivian": {
+    "name": "Vivian",
+    "description": "明亮女声",
+    "reference": "Vivian-reference.wav",
+    "text": "清晨，窗边的光落在翻开的书页上。你不必急着读完，只要在这一刻，给自己留一点安静的时间。",
+    "sha256": "9bc30e1b246b200e108c681c0b67c00650bfe4c99941c5b48ab20c9efecb3218"
+  },
+  "Uncle_Fu": {
+    "name": "Uncle_Fu",
+    "description": "醇厚男声",
+    "reference": "Uncle_Fu-reference.wav",
+    "text": "清晨，窗边的光落在翻开的书页上。你不必急着读完，只要在这一刻，给自己留一点安静的时间。",
+    "sha256": "61399c7cae8e1b049dea06b871bbcff0ad960ea038998d7d44d569ec58685153"
+  }
+}

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data: epub:; font-src 'self'; media-src blob:; frame-src 'self' about:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>拾页 · EPUB 阅读器</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="tools.css">
+  <link rel="stylesheet" href="glass.css">
+  <link rel="stylesheet" href="speech.css">
+  <link rel="stylesheet" href="ai.css">
+  <script src="purify.js" defer></script>
+  <script src="reading.js" defer></script>
+  <script src="speech.js" defer></script>
+  <script src="notes.js" defer></script>
+  <script src="ai-images.js" defer></script><script src="ai.js" defer></script>
+  <script src="renderer.js" defer></script>
+</head>
+<body>
+  <div id="shelf-view" class="shelf-layout">
+    <aside class="app-sidebar">
+      <div class="brand"><span class="brand-mark">页</span><span>拾页<small>READING TEXT</small></span></div>
+      <div class="sidebar-scroll">
+        <div class="sidebar-caption">我的空间</div>
+        <button id="all-books-button" class="shelf-nav sidebar-current" aria-current="page" data-category-drop=""><span aria-hidden="true"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6a3 3 0 0 1 2 1 3 3 0 0 1 2-1h6v16h-6a3 3 0 0 0-2 1 3 3 0 0 0-2-1H4Z"/><path d="M12 5v16"/></svg></span> 全部书籍 <span id="sidebar-count" class="count">0</span></button>
+        <button id="uncategorized-button" class="shelf-nav" data-category-drop=""><span aria-hidden="true"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h7l2 2h9v12H3Z"/></svg></span> 未分类 <span id="uncategorized-count" class="count">0</span></button>
+        <div class="folder-heading"><span>我的分类</span><button id="new-folder-button" class="icon-button" aria-label="新建分类">＋</button></div>
+        <nav id="folder-list" aria-label="书籍分类"></nav>
+        <p id="folder-hint">把书归拢，也给思绪留白。</p>
+        <p class="drag-tip">按住右键拖到分类以移动<br>拖到未分类，即可移出</p>
+      </div>
+      <div class="sidebar-note"><span class="status-dot"></span> 本地书架<small>书籍与阅读进度保存在这台电脑</small></div>
+    </aside>
+    <main class="shelf-main">
+      <header class="shelf-header">
+        <span class="eyebrow">留一点时间，给阅读。</span>
+        <div><button id="ai-settings-shelf" class="toolbar-button"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>AI 伴读设置</span></button><button id="backup-button" class="toolbar-button"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6M12 8v5l3 2"/></svg><span>备份与恢复</span></button><button id="voice-manage-shelf" class="toolbar-button"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 14v-3a7 7 0 0 1 14 0v3"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></svg><span>本地语音包</span></button><span class="version">拾页 · 0.16.1</span></div>
+      </header>
+      <section class="shelf-title-row"><div><h1><span id="shelf-title">我的书架</span><span class="title-dot">.</span></h1><p id="shelf-subtitle">从一本书开始，慢慢读。</p></div><button id="import-button" class="primary-button"><span aria-hidden="true">＋</span> 导入 EPUB</button></section>
+      <section id="continue-section" class="continue-card" hidden>
+        <div id="continue-cover" class="continue-art"></div>
+        <div class="continue-content"><span class="eyebrow">接着上次读</span><h2 id="continue-title"></h2><p id="continue-detail"></p><button id="continue-button" class="text-button">继续阅读 <span aria-hidden="true">→</span></button></div>
+        <span class="continue-decoration" aria-hidden="true"></span>
+      </section>
+      <div class="section-label"><h2><span id="section-title">全部书籍</span> <span id="book-count">0</span></h2><span>按最近阅读排列</span></div>
+      <section id="empty-state" class="empty-state"><div class="empty-book" aria-hidden="true">▤</div><h2>你的下一段旅程，从这里开始</h2><p>导入一本 EPUB，把阅读留在自己的节奏里。</p><button id="example-button" class="secondary-button">先读一本示例书 <span aria-hidden="true">→</span></button><small>支持普通文字排版的 EPUB 2 / 3 · 无需登录</small></section>
+      <section id="book-grid" class="book-grid" aria-label="书架"></section>
+      <section id="category-empty" class="empty-state" hidden><div class="empty-book" aria-hidden="true">▱</div><h2>这里，留给下一本好书</h2><p>导入一本 EPUB，或在全部书籍中将书移到这个分类。</p></section>
+      <footer class="shelf-footer"><span>一页一页，读出自己的世界。</span><span>EPUB · 离线阅读</span></footer>
+      <div id="drop-overlay" class="drop-overlay" hidden><strong>松开以导入 EPUB</strong><span>可以一次拖入多本书</span></div>
+    </main>
+  </div>
+
+  <section id="reader-view" class="reader-layout" hidden aria-label="阅读器">
+    <header class="reader-toolbar">
+      <button id="back-button" class="toolbar-button" aria-label="书架" title="书架" ><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg><span>书架</span></button><button id="return-position-button" class="toolbar-button" aria-label="返回原位置" title="返回原位置" disabled><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 5-5 5 5 5M3 10h11a6 6 0 0 1 0 12"/></svg><span>返回原位置</span></button>
+      <div class="reader-heading"><strong id="reader-title"></strong><span id="chapter-title"></span></div>
+      <div class="toolbar-actions" role="group" aria-label="阅读工具">
+        <button id="toc-button" class="toolbar-button" aria-label="目录" title="目录" aria-expanded="true" aria-controls="toc-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span>目录</span></button>
+        <button id="bookmarks-button" class="toolbar-button" aria-label="书签" title="书签" aria-expanded="false" aria-controls="tools-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4Z"/></svg><span class="compact-label">书签</span></button>
+        <button id="notes-button" class="toolbar-button" aria-label="摘录" title="摘录" aria-expanded="false" aria-controls="tools-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H5v18h14V8Zm0 0v5h5M8 12h8M8 16h6"/></svg><span class="compact-label">摘录</span></button>
+        <button id="ai-open-reader" class="toolbar-button" aria-label="AI 讨论" title="AI 讨论" aria-expanded="false" aria-controls="ai-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></svg><span>AI 讨论</span></button>
+        <button id="search-button" class="toolbar-button" aria-label="搜索" title="搜索" aria-expanded="false" aria-controls="tools-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span class="compact-label">搜索</span></button>
+        <button id="settings-button" class="toolbar-button" aria-label="排版" title="排版" aria-expanded="false" aria-controls="settings-panel"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 19 6-14 6 14M5 14h8M17 12c4-2 5 0 5 2v5m0-4c-6-2-6 6 0 3"/></svg><span>排版</span></button>
+        <button id="quiet-button" class="toolbar-button" aria-label="安静阅读" title="安静阅读（Ctrl+Shift+Q），Esc 退出" aria-pressed="false"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4C8 3 3 9 6 16c7 3 13-2 14-12Z"/><path d="m4 20 11-11"/></svg><span class="compact-label">安静</span></button>
+        <button id="fullscreen-button" class="toolbar-button" aria-label="全屏" title="全屏" aria-pressed="false"><svg class="toolbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></svg><span class="compact-label" id="fullscreen-label">全屏</span></button>
+      </div>
+    </header>
+    <div class="quiet-edge quiet-edge-top" aria-hidden="true"></div><div class="quiet-edge quiet-edge-bottom" aria-hidden="true"></div>
+    <div class="reading-workspace">
+      <aside id="toc-panel" class="toc-panel"><div class="toc-header"><h2>目录</h2><span id="chapter-count"></span></div><nav id="toc-list" aria-label="章节目录"></nav></aside>
+      <aside id="tools-panel" class="tools-panel" hidden aria-label="阅读工具">
+        <div class="settings-heading"><h2 id="tools-title">书签</h2><button id="close-tools" class="icon-button" aria-label="关闭阅读工具">×</button></div>
+        <section id="bookmark-tools"><button id="add-bookmark" class="secondary-button">＋ 保存当前位置</button><p id="bookmark-status" class="tool-status" aria-live="polite"></p><div id="bookmark-list"></div></section>
+        <section id="note-tools" hidden><label class="search-label" for="note-filter">按标注颜色查看</label><select id="note-filter"><option value="all">全部颜色</option><option value="yellow">淡黄</option><option value="blue">雾蓝</option><option value="green">浅绿</option><option value="purple">淡紫</option></select><div class="note-export-actions"><button id="note-export-markdown" class="secondary-button">导出 Markdown</button><button id="note-export-text" class="secondary-button">导出纯文本</button></div><p id="note-status" class="tool-status" role="status"></p><div id="note-list"></div></section>
+        <section id="search-tools" hidden><form id="search-form"><label class="search-label" for="search-input">搜索这本书</label><div class="search-field"><input id="search-input" type="search" maxlength="100" placeholder="输入人物、词语或句子" required><button class="primary-button" type="submit">查找</button></div></form><p id="search-status" class="tool-status" role="status">输入关键词，搜索全部章节。</p><div id="search-results"></div></section>
+      </aside>
+      <div id="reading-area" class="reading-area"><div id="chapter-loading" class="chapter-loading" hidden>正在打开章节…</div><iframe id="book-frame" title="电子书正文" sandbox="allow-same-origin"></iframe><button id="speech-follow" class="speech-follow" hidden>回到朗读处 ↓</button></div>
+      <aside id="settings-panel" class="settings-panel" hidden aria-label="阅读排版"><div class="settings-heading"><h2>阅读排版</h2><button id="close-settings" class="icon-button" aria-label="关闭排版设置">×</button></div><p>找到适合你的阅读节奏。</p>
+        <label for="font-family">正文字体</label><select id="font-family"><option value="system">系统默认</option><option value="serif">思源宋体</option><option value="wenkai">霞鹜文楷 · 屏幕阅读版</option><option value="sans">思源黑体</option></select>
+        <label for="font-size">字号 <output id="font-size-value">20 px</output></label><input id="font-size" type="range" min="14" max="32" step="1" value="20">
+        <label for="line-height">行距 <output id="line-height-value">1.9</output></label><input id="line-height" type="range" min="1.4" max="2.4" step="0.1" value="1.9">
+        <label for="paragraph-gap">段距 <output id="paragraph-gap-value">1.2 倍字号</output></label><input id="paragraph-gap" type="range" min="0" max="2.4" step="0.1" value="1.2">
+        <label for="reading-width">阅读宽度 <output id="reading-width-value">760 px</output></label><input id="reading-width" type="range" min="560" max="960" step="40" value="760">
+        <label for="reading-background">阅读背景</label><select id="reading-background"><option value="white">暖白</option><option value="blue">雾蓝</option><option value="gray">浅灰</option><option value="sand">米杏</option></select>
+        <label for="background-tint">背景浓淡 <output id="background-tint-value">60%</output></label><input id="background-tint" type="range" min="0" max="1" step="0.1" value="0.6">
+        <button id="reset-settings" class="secondary-button">恢复默认排版</button>
+      </aside>
+    </div>
+    <aside id="speech-bar" class="speech-panel" aria-label="听读面板" hidden>
+      <div class="speech-heading"><div><strong id="speech-voice-name">Serena</strong><small>给文字一点声音</small></div><button id="speech-close" class="icon-button" aria-label="收起朗读面板">×</button></div>
+      <label class="voice-choice-label" for="speech-voice">朗读音色<select id="speech-voice" aria-label="朗读音色"><option value="Serena">Serena · 温柔女声</option></select></label>
+      <span id="speech-status" role="status">Serena · 温柔女声</span>
+      <div class="speech-controls"><button id="speech-play" class="speech-primary">▷ 朗读</button><button id="speech-previous" class="toolbar-button" disabled>上一段</button><button id="speech-next" class="toolbar-button" disabled>下一段</button><button id="speech-stop" class="toolbar-button" disabled>停止</button></div>
+      <label class="speech-rate-label" for="speech-rate">朗读速度 <output id="speech-rate-value">0.90×</output></label>
+      <input id="speech-rate" type="range" min="0.6" max="2" step="0.05" value="0.9"><div class="speech-rate-hints"><span>0.6×</span><button id="speech-rate-reset">恢复正常</button><span>2.0×</span></div>
+      <label class="speech-option"><input id="speech-auto-advance" type="checkbox" checked>自动朗读下一章</label>
+      <div class="speech-timer-row"><label for="speech-timer">定时停止</label><select id="speech-timer"><option value="off">不定时</option><option value="15">15 分钟</option><option value="30">30 分钟</option><option value="60">60 分钟</option><option value="chapter">读完本章</option></select></div>
+      <output id="speech-timer-status" class="speech-timer-status" aria-live="off"></output>
+      <label class="speech-prewarm"><input id="speech-prewarm" type="checkbox" checked>打开书籍时提前准备声音<small>减少等待，会增加内存占用</small></label>
+      <div class="speech-panel-footer"><button id="speech-resume" class="toolbar-button" hidden>继续上次听读</button><button id="voice-manage-reader" class="toolbar-button">语音包</button></div>
+    </aside>
+    <button id="speech-toggle" class="speech-toggle" aria-label="打开朗读面板" aria-controls="speech-bar" aria-expanded="false"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></svg><span class="speech-active-dot" aria-hidden="true"></span></button>
+    <footer class="reader-footer"><button id="previous-chapter" class="toolbar-button">← 上一章</button><div><span id="reading-progress"></span><span id="save-status" class="save-status" aria-live="polite">进度已保存</span></div><button id="next-chapter" class="toolbar-button">下一章 →</button></footer>
+  </section>
+  <aside id="ai-panel" class="ai-panel" aria-label="AI 伴读" hidden>
+    <div class="settings-heading"><h2>一起读懂这一段</h2><div><button id="ai-clear" class="toolbar-button" disabled>清空</button><button id="ai-settings-reader" class="toolbar-button">设置</button><button id="ai-close" class="icon-button" aria-label="收起 AI 伴读">×</button></div></div>
+    <label class="search-label" for="ai-conversation">切换本书会话</label><select id="ai-conversation" aria-label="切换本书会话"></select><small id="ai-memory"></small>
+    <div id="ai-scroll" class="ai-scroll"><p id="ai-source" class="ai-source"></p><blockquote id="ai-quote" class="ai-quote"></blockquote>
+    <p class="ai-disclosure">发送给 DeepSeek：本段原文、书籍信息和本会话记录（含已发送截图，最多 20 轮）。不发送其他会话或整本书。长对话及图片会增加用量；外部说法未经联网核验。</p>
+    <p id="ai-empty" class="ai-empty">这一段让你想到了什么？可以先解释一句，也可以聊聊你的理解。</p><div id="ai-messages" aria-live="off"></div></div>
+    <div class="ai-shortcuts"><button id="ai-save-excerpt" class="secondary-button" title="保存原文到摘录并标注，不调用 AI" hidden>加入摘录</button><button id="ai-explain" class="secondary-button">解释一下</button><button id="ai-discuss" class="secondary-button">聊聊我的理解</button><button id="ai-draft" class="secondary-button" disabled title="调用 AI 整理讨论，再由你编辑和保存">整理成笔记</button></div>
+    <form id="ai-form"><div id="ai-image-draft" hidden><img id="ai-image-thumb" alt="待发送的截图"><span>截图待发送</span><button id="ai-image-remove" type="button" class="toolbar-button">移除截图</button></div><label class="search-label" for="ai-question">你的问题</label><textarea id="ai-question" rows="2" maxlength="1500" placeholder="问问这段话，或说说你的看法…" required></textarea><p id="ai-error" class="form-error" role="alert"></p><div class="ai-send-actions"><button id="ai-capture" type="button" class="ai-attach-button" title="截取当前阅读区域，预览确认后再发送" aria-label="截图提问"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 5 9.5 3h5L16 5h4v15H4V5Z"/><circle cx="12" cy="12" r="4"/></svg><span>截图</span></button><button id="ai-retry-save" type="button" class="secondary-button" hidden>重试保存回答</button><button id="ai-stop" type="button" class="secondary-button" hidden>停止</button><button id="ai-send" class="primary-button" type="submit">发送</button></div></form>
+  </aside>
+  <div id="ai-capture-layer" tabindex="-1" aria-label="拖选阅读截图范围，Escape取消" hidden><span>拖选阅读区域 · Esc 取消</span><button id="ai-capture-cancel" type="button">取消</button><div id="ai-capture-rect" hidden></div></div>
+  <dialog id="ai-image-dialog"><h2>截图预览</h2><img id="ai-image-preview" alt="截图预览"><p class="dialog-note">只会发送这张图片。确认文字、数字和公式清晰；加入问题后，点击发送才上传到 DeepSeek。需要支持图片的 deepseek-flash。</p><p id="ai-image-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="ai-image-cancel" type="button" class="secondary-button">关闭</button><button id="ai-image-use" type="button" class="primary-button">加入问题</button></div></dialog>
+  <dialog id="ai-delete-dialog" aria-labelledby="ai-delete-title"><h2 id="ai-delete-title">删除讨论记录？</h2><p id="ai-delete-description" class="dialog-note"></p><p id="ai-delete-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="ai-delete-cancel" class="secondary-button">取消</button><button id="ai-delete-confirm" class="danger-button">确认删除</button></div></dialog>
+  <dialog id="ai-settings-dialog" aria-labelledby="ai-settings-title"><form id="ai-settings-form">
+    <h2 id="ai-settings-title">AI 伴读设置</h2><p class="dialog-note">服务商：DeepSeek · 使用你自己的 API 账户，按用量计费。</p>
+    <label for="ai-key">API 密钥</label><div class="ai-key-row"><input id="ai-key" type="password" autocomplete="off" spellcheck="false" maxlength="256" placeholder="粘贴你的 DeepSeek API Key"><button id="ai-key-show" type="button" class="secondary-button">显示</button></div><p id="ai-key-state"></p>
+    <div class="ai-settings-buttons"><button id="ai-detect" type="button" class="secondary-button">检测连接并获取模型</button><button id="ai-key-clear" type="button" class="secondary-button">清除已保存密钥</button></div>
+    <div id="ai-detected-models" hidden><label for="ai-model-picker">检测到的模型</label><select id="ai-model-picker"></select></div>
+    <label for="ai-model">使用的模型（可手动填写）</label><input id="ai-model" list="ai-models" maxlength="100" value="deepseek-flash" required spellcheck="false"><datalist id="ai-models"></datalist>
+    <div class="ai-settings-buttons"><button id="ai-test" type="button" class="secondary-button">测试一句回答</button></div>
+    <p class="dialog-note">检测模型不发送书籍正文；测试回答会产生少量 API 用量。密钥由 Windows 加密保存在本机，不放入书架备份。</p><p id="ai-settings-status" class="tool-status" role="status"></p><p id="ai-settings-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions"><button id="ai-settings-close" type="button" class="secondary-button">关闭</button><button id="ai-settings-save" type="submit" class="primary-button">保存设置</button></div>
+  </form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="selection-tools" class="selection-tools" role="group" aria-label="选中文字操作" hidden><select id="selection-color" aria-label="标注颜色"><option value="yellow">淡黄</option><option value="blue">雾蓝</option><option value="green">浅绿</option><option value="purple">淡紫</option></select><button id="selection-highlight">标注</button><button id="selection-note">写笔记</button><button id="selection-ai">问 AI</button></div>
+  <dialog id="note-dialog" aria-labelledby="note-dialog-title"><form id="note-form"><h2 id="note-dialog-title">写一条笔记</h2><blockquote id="note-quote"></blockquote><label for="note-color">标注颜色</label><select id="note-color"><option value="yellow">淡黄</option><option value="blue">雾蓝</option><option value="green">浅绿</option><option value="purple">淡紫</option></select><label for="note-text">我的想法</label><textarea id="note-text" rows="5" maxlength="2000" placeholder="记下此刻想到的事，也可以只保留标注。"></textarea><p id="note-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="note-cancel" type="button" class="secondary-button">取消</button><button id="note-save" type="submit" class="primary-button">保存</button></div></form></dialog>
+  <dialog id="backup-dialog" aria-labelledby="backup-title"><h2 id="backup-title">备份与恢复</h2><p class="dialog-note">保存书籍、分类、书签、摘录、笔记、AI 讨论和阅读设置。API 密钥和语音模型不放入备份，换电脑后可重新下载。</p><div class="backup-actions"><button id="backup-export" class="primary-button">导出备份</button><button id="backup-choose" class="secondary-button">选择备份恢复</button></div><section id="restore-preview" hidden><p id="restore-summary"></p><p class="dialog-note">合并恢复：已有书籍保留当前进度和分类，补充书签与笔记；空书架同时恢复阅读设置。不同内容的笔记会分别保留。</p><button id="backup-restore" class="primary-button">确认合并恢复</button></section><p id="backup-status" class="tool-status" role="status"></p><p id="backup-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="backup-close" class="secondary-button">关闭</button></div></dialog>
+  <dialog id="voice-dialog" aria-labelledby="voice-title"><h2 id="voice-title">本地语音包</h2><label class="voice-choice-label" for="voice-choice">选择试听音色<select id="voice-choice" aria-label="选择试听音色"><option value="Serena">Serena · 温柔女声</option></select></label><p>三个音色共用一个语音包。下载后在这台电脑离线生成声音，书籍正文不会上传。</p><p class="dialog-note">首次安装建议预留 15 GB 空间；从 0.5 升级需额外下载约 4.3 GB，旧模型会保留。此体验版使用 NVIDIA 显卡加速，首次朗读需要约半分钟准备模型。</p><p id="voice-pack-status" class="tool-status" role="status"></p><p id="voice-error" class="form-error" role="alert"></p><div class="voice-actions"><button id="voice-install" class="primary-button">下载语音包</button><button id="voice-cancel-install" class="secondary-button" hidden>取消下载</button><button id="voice-preview" class="secondary-button" hidden>试听 Serena</button><button id="voice-remove" class="secondary-button" hidden>移除语音包</button><button id="voice-close" class="secondary-button">关闭</button></div></dialog>
+  <dialog id="delete-dialog"><h2>从书架移除这本书？</h2><p id="delete-description"></p><p class="dialog-note">会删除本地书架副本和阅读进度，原始 EPUB 文件会保留。</p><div class="dialog-actions"><button id="cancel-delete" class="secondary-button">取消</button><button id="confirm-delete" class="danger-button">移除书籍</button></div></dialog>
+  <dialog id="folder-dialog"><form id="folder-form"><h2 id="folder-dialog-title">新建分类</h2><label for="folder-name">分类名称</label><input id="folder-name" maxlength="30" placeholder="例如：文学小说" required><p id="folder-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-folder" type="button" class="secondary-button">取消</button><button id="save-folder" type="submit" class="primary-button">保存分类</button></div></form></dialog>
+  <dialog id="delete-folder-dialog"><h2>删除这个分类？</h2><p id="delete-folder-name"></p><p class="dialog-note">分类中的书籍会移到“未分类”，阅读进度和书签都会保留。</p><p id="delete-folder-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-delete-folder" class="secondary-button">取消</button><button id="confirm-delete-folder" class="danger-button">删除分类</button></div></dialog>
+  <dialog id="move-dialog"><h2>移动到分类</h2><p id="move-book-title"></p><label for="move-category">选择分类</label><select id="move-category"></select><p id="move-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="cancel-move" class="secondary-button">取消</button><button id="confirm-move" class="primary-button">移动书籍</button></div></dialog>
+  <dialog id="import-dialog"><h2>导入一本好书</h2><p class="dialog-note">选择放入的分类，再选择本地 EPUB 文件。</p><label for="import-category">放入分类</label><select id="import-category"></select><div class="dialog-actions"><button id="cancel-import" class="secondary-button">取消</button><button id="confirm-import" class="primary-button">选择 EPUB 文件</button></div></dialog>
+</body>
+</html>

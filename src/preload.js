@@ -1,0 +1,63 @@
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
+async function invoke(channel, ...args) {
+  const result = await ipcRenderer.invoke(channel, ...args);
+  if (!result.ok) throw new Error(result.error);
+  return result.data;
+}
+contextBridge.exposeInMainWorld('reader', {
+  list: () => invoke('library:list'),
+  importBook: categoryId => invoke('library:import', categoryId),
+  importFilePath: (filename, categoryId) => invoke('library:import-path', filename, categoryId),
+  filePath: file => {
+    try { return webUtils.getPathForFile(file); } catch { return ''; }
+  },
+  importExample: categoryId => invoke('library:example', categoryId),
+  saveCategory: (id, name) => invoke('category:save', id, name),
+  removeCategory: id => invoke('category:remove', id),
+  moveBook: (id, categoryId) => invoke('book:move', id, categoryId),
+  openBook: id => invoke('book:open', id),
+  chapter: (id, index) => invoke('book:chapter', id, index),
+  saveProgress: (id, progress) => invoke('book:progress', id, progress),
+  saveListeningPosition: (id, position) => invoke('book:listening-position', id, position),
+  removeBook: id => invoke('book:remove', id),
+  addBookmark: (id, value) => invoke('bookmark:add', id, value),
+  removeBookmark: (id, bookmarkId) => invoke('bookmark:remove', id, bookmarkId),
+  saveAnnotation: (id, value) => invoke('annotation:save', id, value),
+  aiStatus: () => invoke('ai:status'),
+  saveAiSettings: value => invoke('ai:settings', value),
+  aiModels: key => invoke('ai:models', key),
+  testAi: (id, key, model) => invoke('ai:test', id, key, model),
+  captureReading: rect => invoke('ai:capture', rect),
+  askAi: (requestId, bookId, annotationId, question, replaceId, image) => invoke('ai:ask', requestId, bookId, annotationId, question, replaceId, image),
+  saveAiTurn: (bookId, annotationId, turn, replaceId) => invoke('ai:save-turn', bookId, annotationId, turn, replaceId),
+  trimAiDiscussion: (bookId, annotationId, fromId, lastId) => invoke('ai:trim', bookId, annotationId, fromId, lastId),
+  copyAiAnswer: (bookId, annotationId, turnId) => invoke('ai:copy', bookId, annotationId, turnId),
+  cancelAi: () => invoke('ai:cancel'),
+  onAiDelta: callback => ipcRenderer.on('ai:delta', (_event, value) => callback(value)),
+  onOpenFile: callback => ipcRenderer.on('library:open-file', (_event, value) => callback(value)),
+  onOpenFileError: callback => ipcRenderer.on('library:open-file-error', (_event, value) => callback(value)),
+  removeAnnotation: (id, annotationId) => invoke('annotation:remove', id, annotationId),
+  exportNotes: (id, format) => invoke('notes:export', id, format),
+  exportBackup: () => invoke('backup:export'),
+  previewBackup: () => invoke('backup:preview'),
+  restoreBackup: token => invoke('backup:restore', token),
+  cancelRestore: () => invoke('backup:cancel'),
+  setFullscreen: enabled => invoke('window:fullscreen', enabled),
+  onFullscreenChanged: callback => ipcRenderer.on('window:fullscreen-changed', (_event, enabled) => callback(enabled)),
+  saveSettings: (settings, bookId) => invoke('settings:save', settings, bookId),
+  voiceStatus: () => invoke('voice:status'),
+  voiceChoices: () => invoke('voice:choices'),
+  installVoice: () => invoke('voice:install'),
+  cancelVoiceInstall: () => invoke('voice:cancel-install'),
+  removeVoice: () => invoke('voice:remove'),
+  synthesize: (text, speaker) => invoke('voice:synthesize', text, speaker),
+  openSpeechStream: (text, style, speaker) => invoke('voice:stream', text, style, speaker),
+  readSpeechStream: id => invoke('voice:stream-next', id),
+  warmVoice: () => invoke('voice:warm'),
+  saveVoiceSettings: value => invoke('voice:settings', value),
+  cancelSpeech: () => invoke('voice:cancel'),
+  onVoiceStatus: callback => ipcRenderer.on('voice:status-changed', (_event, state) => callback(state)),
+  onBeforeClose: callback => ipcRenderer.on('window:before-close', () => callback()),
+  closeReady: () => ipcRenderer.send('window:close-ready'),
+  closeCancel: () => ipcRenderer.send('window:close-cancel')
+});

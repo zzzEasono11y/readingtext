@@ -1,0 +1,81 @@
+{
+  "name": "readingtext",
+  "productName": "拾页",
+  "version": "0.16.1",
+  "description": "轻量的本地 EPUB 阅读器",
+  "author": "ReadingText",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node scripts/make-demo.js && electron .",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "node scripts/make-demo.js && playwright test",
+    "check": "node scripts/check.js",
+    "build": "node scripts/make-demo.js && electron-builder --win portable --x64",
+    "build:dir": "node scripts/make-demo.js && electron-builder --win --dir --x64"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.3",
+    "fast-xml-parser": "^5.11.2",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.readingtext.reader",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "LICENSE",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/voice/Serena-reference.wav",
+        "to": "Serena-reference.wav"
+      },
+      {
+        "from": "src/voice_worker.py",
+        "to": "voice_worker.py"
+      },
+      {
+        "from": "src/voice-constraints.txt",
+        "to": "voice-constraints.txt"
+      },
+      {
+        "from": "assets/voice/Vivian-reference.wav",
+        "to": "Vivian-reference.wav"
+      },
+      {
+        "from": "assets/voice/Uncle_Fu-reference.wav",
+        "to": "Uncle_Fu-reference.wav"
+      },
+      {
+        "from": "assets/voice/voices.json",
+        "to": "voices.json"
+      }
+    ],
+    "fileAssociations": [
+      {
+        "ext": "epub",
+        "name": "EPUB 电子书",
+        "description": "用拾页打开 EPUB 电子书",
+        "mimeType": "application/epub+zip",
+        "role": "Editor"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "ReadingText-${version}-Windows.${ext}"
+    }
+  }
+}

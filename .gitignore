@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.npm-cache/
+.electron-cache/
+.builder-cache/
+test-results/
+playwright-report/
+.test-data/
+assets/demo.epub
+*.log
+.voice-dev/
+__pycache__/
